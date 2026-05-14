@@ -1,7 +1,5 @@
 "use client"
-
 import { CircleLoader } from "react-spinners"
-
 export default function ChatLoading() {
   return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>

@@ -5,10 +5,8 @@ import { supabase } from "../../lib/supabaseClient"
 export default function GroupPage() {
     const [name, setName] =
   useState("")
-
 const [members, setMembers] =
   useState("")
-
 const [user, setUser] =
   useState<any>(null)
   useEffect(() => {
@@ -17,10 +15,8 @@ const [user, setUser] =
       data: { session },
     } =
       await supabase.auth.getSession()
-
     setUser(session?.user)
   }
-
   getUser()
 }, [])
 const createGroup =
@@ -31,14 +27,12 @@ const createGroup =
       !user
     )
       return
-
     const users = [
       user.email,
       ...members
         .split(",")
         .map((m) => m.trim()),
     ]
-
     await supabase
       .from("chats")
       .insert([
@@ -53,7 +47,6 @@ const createGroup =
 
     alert("Group created")
   }
-
   return (
     <div
   style={{
@@ -61,7 +54,6 @@ const createGroup =
   }}
 >
   <h1>Create Group</h1>
-
   <input
     placeholder="Group name"
     value={name}
@@ -76,7 +68,6 @@ const createGroup =
       setMembers(e.target.value)
     }
   />
-
   <button
     onClick={createGroup}
   >

@@ -1,7 +1,6 @@
 "use client"
 
 import { CircleLoader } from "react-spinners"
-
 export default function Loading() {
   return (
     <div
@@ -20,7 +19,6 @@ export default function Loading() {
           height={200}
           style={{ marginBottom: 20 }}
         />
-
         {/* Spinner */}
         <CircleLoader color="#25D366" size={60} />
       </div>

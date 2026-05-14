@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
-
 import ChatIcon from "@mui/icons-material/Chat"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import DonutLargeIcon from "@mui/icons-material/DonutLarge"
@@ -13,7 +12,6 @@ import {
   MenuItem,
   IconButton,
 } from "@mui/material"
-
 export default function Sidebar({
   user,
 }: {
@@ -21,7 +19,6 @@ export default function Sidebar({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-
   const [chats, setChats] = useState<any[]>([])
   const [sortedChats, setSortedChats] =
     useState<any[]>([])
@@ -41,15 +38,11 @@ const [isMobile, setIsMobile] =
   const [unread, setUnread] = useState<{
     [key: string]: number
   }>({})
-
   const [search, setSearch] = useState("")
-
   // 🔥 MENU
   const [anchorEl, setAnchorEl] =
     useState<null | HTMLElement>(null)
-
   const open = Boolean(anchorEl)
-
   const handleClick = (
     event: React.MouseEvent<HTMLElement>
   ) => {
@@ -59,36 +52,27 @@ const [isMobile, setIsMobile] =
   const handleClose = () => {
     setAnchorEl(null)
   }
-
   // 🔥 LOGOUT
   const logout = async () => {
     await supabase.auth.signOut()
     router.push("/")
   }
-
   // 🔥 USER AVATAR
   const getAvatar = (userData: any) => {
-    return (
-      userData?.picture ||
-      userData?.avatar_url ||
-      `https://ui-avatars.com/api/?name=${userData?.email}`
-    )
-  }
-
+  return (
+    userData?.picture ||
+    userData?.avatar_url ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || "U")}&background=random`
+  )
+}
   // 🔥 OTHER USERS AVATAR
   const getAvatars = (email: string) => {
-    if (!email) {
-      return "https://ui-avatars.com/api/?name=User"
-    }
-
-    const profile = profiles.find(
-      (p) => p.email === email
-    )
-
-    return (
-      profile?.avatar_url ||
-      `https://ui-avatars.com/api/?name=${email}`
-    )
+    if (!email) return `https://ui-avatars.com/api/?name=U&background=random`
+  const profile = profiles.find((p) => p.email === email)
+  return (
+    profile?.avatar_url ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=random`
+  )
   }
 useEffect(() => {
   const checkMobile = () => {
@@ -98,12 +82,10 @@ useEffect(() => {
   }
 
   checkMobile()
-
   window.addEventListener(
     "resize",
     checkMobile
   )
-
   return () => {
     window.removeEventListener(
       "resize",
@@ -111,7 +93,7 @@ useEffect(() => {
     )
   }
 }, [])
-  // 🔥 FETCH PROFILES
+  //  FETCH PROFILES
   useEffect(() => {
     const fetchProfiles = async () => {
       const { data } = await supabase
@@ -124,7 +106,7 @@ useEffect(() => {
     fetchProfiles()
   }, [])
 
-  // 🔥 CREATE CHAT
+  //  CREATE CHAT
   const createChat = async () => {
     const email = prompt("Enter email:")
 
@@ -134,12 +116,10 @@ useEffect(() => {
       alert("You cannot chat with yourself")
       return
     }
-
     const isValid =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
         email
       )
-
     if (!isValid) {
       alert(
         "Please enter a valid email address."
@@ -147,18 +127,17 @@ useEffect(() => {
       return
     }
 
-    // 🔥 vérifier compte réel
+    //  vérifier compte réel
     const users = JSON.stringify(
       [user.email, email].sort()
     )
 
-    // 🔥 vérifier doublon
+    //  vérifier doublon
     const { data: existingChats } =
       await supabase
         .from("chats")
         .select("*")
         .eq("users", users)
-
     if (
       existingChats &&
       existingChats.length > 0
@@ -166,11 +145,9 @@ useEffect(() => {
       router.push(
         `/chat/${existingChats[0].id}`
       )
-
       return
     }
-
-    // 🔥 créer chat
+    //  créer chat
     const { data } = await supabase
       .from("chats")
       .insert([{ users }])
@@ -181,7 +158,7 @@ useEffect(() => {
     }
   }
 
-  // 🔥 FETCH CHATS
+  //  FETCH CHATS
   useEffect(() => {
     const fetchChats = async () => {
       const { data, error } =
@@ -192,34 +169,28 @@ useEffect(() => {
             "users",
             `%${user.email}%`
           )
-
       if (error) {
         console.error(
           "Error fetching chats:",
           error
         )
-
         return
       }
-
       setChats(data || [])
     }
-
     if (user?.email) {
       fetchChats()
     }
   }, [user.email])
 
-  // 🔥 FETCH LAST MESSAGES
+  //  FETCH LAST MESSAGES
   useEffect(() => {
     const fetchLastMessages =
       async () => {
         if (chats.length === 0) return
-
         const chatIds = chats.map(
           (c) => c.id
         )
-
         const { data } = await supabase
           .from("messages")
           .select("*")
@@ -227,9 +198,7 @@ useEffect(() => {
           .order("created_at", {
             ascending: false,
           })
-
         const map: any = {}
-
         for (const msg of data || []) {
           if (!map[msg.chat_id]) {
             map[msg.chat_id] = msg
@@ -238,7 +207,7 @@ useEffect(() => {
 
         setLastMessages(map)
 
-        // 🔥 TRI
+        //  TRI
         const sorted = [...chats].sort(
   (a, b) => {
     // pinned first
@@ -253,26 +222,21 @@ useEffect(() => {
       b.pinned
     )
       return 1
-
     const aTime =
       map[a.id]?.created_at || 0
-
     const bTime =
       map[b.id]?.created_at || 0
-
     return (
       new Date(bTime).getTime() -
       new Date(aTime).getTime()
     )
   }
 )
-
         setSortedChats(sorted)
       }
-
     fetchLastMessages()
 
-    // 🔥 REALTIME
+    //  REALTIME
    const channel = supabase
   .channel("sidebar-realtime")
   .on(
@@ -285,10 +249,10 @@ useEffect(() => {
     (payload) => {
       const newMsg: any = payload.new
 
-      // 🔥 refresh sidebar
+      //  refresh sidebar
       fetchLastMessages()
 
-      // 🔥 unread logic
+      //  unread logic
       if (
         newMsg.user_email !== user.email &&
         pathname !== `/chat/${newMsg.chat_id}`
@@ -311,7 +275,6 @@ useEffect(() => {
 useEffect(() => {
   const currentChat =
     pathname.split("/chat/")[1]
-
   if (currentChat) {
     setUnread((prev) => ({
       ...prev,
@@ -346,12 +309,10 @@ useEffect(() => {
         })
         .eq("email", user.email)
     }
-
   window.addEventListener(
     "beforeunload",
     handleOffline
   )
-
   return () => {
     window.removeEventListener(
       "beforeunload",
@@ -360,14 +321,13 @@ useEffect(() => {
   }
 }, [user])
 
-  // 🔍 FILTER
+  // FILTER
   const filteredChats =
     sortedChats.filter((chat) => {
       try {
         const usersArray = JSON.parse(
           chat.users
         )
-
         const other =
           usersArray.find(
             (u: string) =>
@@ -417,7 +377,7 @@ if (
           style={{
             borderRadius: "50%",
             cursor: "pointer",
-          }}
+          }} 
           onClick={async () => {
             const confirmLogout =
               confirm("Logout ?")
@@ -428,8 +388,11 @@ if (
 
             router.push("/")
           }}
+          onError={(e) => {
+    // Fallback si l'image échoue à charger
+    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || "U")}&background=random`
+  }}
         />
-
         <div
           style={{
             display: "flex",
@@ -444,7 +407,6 @@ if (
               }}
             />
           </IconButton>
-
           <IconButton
             onClick={handleClick}
           >
@@ -477,11 +439,9 @@ if (
         <MenuItem onClick={handleClose}>
           Profile
         </MenuItem>
-
         <MenuItem onClick={handleClose}>
           Settings
         </MenuItem>
-
         <MenuItem
           onClick={() => {
             handleClose()
@@ -491,7 +451,6 @@ if (
           Logout
         </MenuItem>
       </Menu>
-
       {/* SEARCH */}
       <div style={{ padding: "10px" }}>
         <input
@@ -524,17 +483,12 @@ if (
           let otherUser = "Unknown"
 
           try {
-            const usersArray =
-              JSON.parse(chat.users)
-
-            chat.is_group
-  ? chat.group_name
-  : otherUser =
-              usersArray.find(
-                (u: string) =>
-                  u !== user.email
-              ) || "Unknown"
-          } catch {}
+  const usersArray = JSON.parse(chat.users)
+  // ✅ CORRECT
+  if (!chat.is_group) {
+    otherUser = usersArray.find((u: string) => u !== user.email) || "Unknown"
+  }
+} catch {}
 
           const lastMsg =
             lastMessages[chat.id]
@@ -561,7 +515,6 @@ const togglePin = async (
                   "lastChat",
                   chat.id
                 )
-
                 router.push(
                   `/chat/${chat.id}`
                 )
@@ -591,11 +544,16 @@ const togglePin = async (
                 }
               }}
             >
+
               {/* AVATAR */}
               <img
-                src={getAvatars(chat.is_group
-  ? chat.group_name
-  : otherUser)}
+              src={chat.is_group 
+  ? `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.group_name)}&background=random`
+  : getAvatars(otherUser)
+}
+onError={(e) => {
+  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser || "U")}&background=random`
+}}
                 width={45}
                 height={45}
                 style={{
@@ -604,7 +562,6 @@ const togglePin = async (
                   objectFit: "cover",
                 }}
               />
-
               {/* INFOS */}
               <div
                 style={{
@@ -670,7 +627,6 @@ const togglePin = async (
                     </div>
                   )}
                 </div>
-
                 {/* LAST MESSAGE */}
                 <p
                   style={{

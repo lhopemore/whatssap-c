@@ -2,22 +2,17 @@ import TimerIcon from "@mui/icons-material/Timer"
 type Props = {
   msg: any
   isMe: boolean
-
   onDelete?: (
     messageId: string
   ) => Promise<void>
-
   onReply: (msg: any) => void
-
   messages: any[]
-
   onReact: (
     id: string,
     emoji: string,
     reactions: any
   ) => void
 }
-
 export default function MessageBubble({
   msg,
   isMe,
@@ -31,9 +26,7 @@ export default function MessageBubble({
       (m) =>
         m.id === msg.reply_to
     )
-
   return (
-    
     <div
       style={{
         display: "flex",
@@ -71,7 +64,6 @@ export default function MessageBubble({
             {msg.user_email}
           </p>
         )}
-
         {/* REPLY PREVIEW */}
         {repliedMessage && (
           <div
@@ -99,7 +91,6 @@ export default function MessageBubble({
                 repliedMessage.user_email
               }
             </p>
-
             <p
               style={{
                 margin: 0,
@@ -136,7 +127,6 @@ export default function MessageBubble({
             }}
           >
             📄
-
             <span>
               {msg.file_name}
             </span>
@@ -217,7 +207,6 @@ export default function MessageBubble({
                 🗑
               </button>
             )}
-
           {/* TIME */}
           <span
             style={{

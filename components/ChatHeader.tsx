@@ -5,30 +5,58 @@ import CallIcon from "@mui/icons-material/Call"
 import VideocamIcon from "@mui/icons-material/Videocam"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import DonutLargeIcon from "@mui/icons-material/DonutLarge"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
+
 type Props = {
   otherUser: string
   typing: boolean
   onBack: () => void
-isMobile: boolean
+  isMobile: boolean
   onAudioCall: () => void
   onVideoCall: () => void
   isOnline: boolean
   lastSeen: string
   search: string
-setSearch: any
+  setSearch: any
 }
+
 export default function ChatHeader({
   otherUser,
   typing,
-   onBack,
+  onBack,
   isMobile,
-    onAudioCall,
-    onVideoCall,
-     search,
+  onAudioCall,
+  onVideoCall,
+  search,
   setSearch,
   isOnline,
   lastSeen,
 }: Props) {
+  const [avatar, setAvatar] = useState(
+    `https://ui-avatars.com/api/?name=${otherUser || "User"}&background=random`
+  )
+
+  useEffect(() => {
+    if (!otherUser) return
+    const fetchAvatar = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("email", otherUser)
+        .single()
+
+      if (data?.avatar_url) {
+        setAvatar(data.avatar_url)
+      } else {
+        setAvatar(
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser)}&background=random`
+        )
+      }
+    }
+    fetchAvatar()
+  }, [otherUser])
+
   return (
     <div
       style={{
@@ -36,120 +64,64 @@ export default function ChatHeader({
         background: "#f0f2f5",
         display: "flex",
         alignItems: "center",
-        justifyContent:
-          "space-between",
+        justifyContent: "space-between",
         padding: "0 15px",
         borderBottom: "1px solid #ddd",
       }}
     >
       {/* LEFT */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center" }}>
         {isMobile && (
-  <IconButton onClick={onBack}>
-    <ArrowBackIcon />
-  </IconButton>
-)}
+          <IconButton onClick={onBack}>
+            <ArrowBackIcon />
+          </IconButton>
+        )}
         <img
-          src={`https://ui-avatars.com/api/?name=${otherUser || "User"}`}
+          src={avatar}
           width={40}
           height={40}
-          style={{
-            borderRadius: "50%",
-            marginRight: "10px",
-            objectFit: "cover",
+          style={{ borderRadius: "50%", marginRight: "10px", objectFit: "cover" }}
+          onError={(e) => {
+            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser || "U")}&background=random`
           }}
         />
         <div>
           <strong>{otherUser}</strong>
-          <p
-            style={{
-              margin: 0,
-              fontSize: "12px",
-              color: "#667781",
-            }}
-          >
-            {typing ? "typing..." : "online"}
+          <p style={{ margin: 0, fontSize: "12px", color: "#667781" }}>
+            {typing ? "typing..." : isOnline ? "online" : lastSeen ? `last seen ${lastSeen}` : ""}
           </p>
         </div>
       </div>
-      {/* RIGHT */}
-      <input
-  value={search}
-  onChange={(e) =>
-    setSearch(e.target.value)
-  }
-  placeholder="Search..."
-  style={{
-    padding: "8px",
-    borderRadius: "20px",
-    border: "none",
-    outline: "none",
-    background: "#fff",
-  }}
-/>
-      <div
-        style={{
-          padding: "10px",
-          borderTop: "1px solid #ddd",
-          background: "#f0f2f5",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          position: "relative",
-        }}
-      ></div>
-<div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-  }}
->
-  <IconButton
-    onClick={onAudioCall}
-  >
-    <CallIcon
-      style={{
-        color: "#54656f",
-      }}
-    />
-  </IconButton>
-  <IconButton
-    onClick={onVideoCall}
-  >
-    <VideocamIcon
-      style={{
-        color: "#54656f",
-      }}
-    />
-  </IconButton>
-  <IconButton>
-    <MoreVertIcon
-      style={{
-        color: "#54656f",
-      }}
-    />
-  </IconButton>
-  <IconButton
-  onClick={() =>
-    document
-      .getElementById("image-upload")
-      ?.click()
-  }
->
-  <DonutLargeIcon
-    style={{
-      color: "#54656f",
-    }}
-  />
-</IconButton>
 
-</div>
+      {/* SEARCH */}
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search..."
+        style={{
+          padding: "8px",
+          borderRadius: "20px",
+          border: "none",
+          outline: "none",
+          background: "#fff",
+        }}
+      />
+
+      {/* RIGHT ACTIONS */}
+      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+        <IconButton onClick={onAudioCall}>
+          <CallIcon style={{ color: "#54656f" }} />
+        </IconButton>
+        <IconButton onClick={onVideoCall}>
+          <VideocamIcon style={{ color: "#54656f" }} />
+        </IconButton>
+        <IconButton>
+          <MoreVertIcon style={{ color: "#54656f" }} />
+        </IconButton>
+        <IconButton onClick={() => document.getElementById("image-upload")?.click()}>
+          <DonutLargeIcon style={{ color: "#54656f" }} />
+        </IconButton>
+      </div>
     </div>
   )
 }
